@@ -1,36 +1,36 @@
 #!/usr/bin/env bash
-#
-# Commit Bot by Steven Kneiser
-#
-# > https://github.com/theshteves/commit-bot
-#
-# Deploy locally by adding the following line to your crontab:
-# 0 22 * * * /bin/bash /<full-path-to-your-folder>/code/commit-bot/bot.sh
-#
-# Edit your crontab in vim w/ the simple command:
-# crontab -e
-#
-# Deploying just on your computer is better than a server if you want
-# your commits to more realistically mirror your computer usage.
-#
-# ...c'mon, nobody commits EVERY day ;)
-#
+
 info="Commit: $(date)"
 echo "OS detected: $OSTYPE"
 
 case "$OSTYPE" in
     darwin*)
-        cd "`dirname $0`" || exit 1
+        cd "$(dirname "$0")" || exit 1
         ;;
-
     linux*)
         cd "$(dirname "$(readlink -f "$0")")" || exit 1
         ;;
-
+    msys*)
+        cd "$(dirname "$0")" || exit 1
+        ;;
     *)
         echo "OS unsupported (submit an issue on GitHub!)"
+        exit 1
         ;;
 esac
+
+# Check if inside a Git repo
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+  echo "Not a git repository. Exiting."
+  exit 1
+fi
+
+# Check file write permission
+touch output.txt 2>/dev/null
+if [ $? -ne 0 ]; then
+  echo "Cannot write to output.txt. Check file or folder permissions."
+  exit 1
+fi
 
 echo "$info" >> output.txt
 echo "$info"
@@ -44,4 +44,3 @@ git add output.txt
 git commit -m "$info"
 git push origin "$branch"
 
-cd -
